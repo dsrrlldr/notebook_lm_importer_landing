@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notebook Importer — Import YouTube & Web Pages into Notebook</title>
+    <meta name="description"
+          content="Add YouTube videos, playlists, channels, and web pages to Google Notebook in one click. Bulk import, browser tabs, and paywalled content supported.">
+    <link rel="icon" href="icons/icon48.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --accent: #ff6a00;
+            --accent-hover: #e55f00;
+            --dark: #0f1117;
+            --dark2: #1a1d27;
+            --white: #ffffff;
+            --gray-bg: #f8f9fa;
+            --text: #111827;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Manrope', sans-serif;
+            color: var(--text);
+            background: var(--white);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ===== NAVBAR ===== */
+
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(15, 17, 23, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .nav-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .nav-logo img {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+        }
+
+        .nav-logo span {
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.01em;
+        }
+
+        .nav-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--accent);
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 9px 20px;
+            border-radius: var(--radius-sm);
+            text-decoration: none;
+            transition: background 0.15s;
+        }
+
+        .nav-cta:hover {
+            background: var(--accent-hover);
+        }
+
+        /* ===== HERO ===== */
+
+        .hero {
+            background: var(--dark);
+            padding: 96px 24px 80px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 600px;
+            background: radial-gradient(ellipse at center, rgba(255, 106, 0, 0.12) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 64px;
+            align-items: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 106, 0, 0.12);
+            border: 1px solid rgba(255, 106, 0, 0.3);
+            color: #ffab6e;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 100px;
+            margin-bottom: 24px;
+        }
+
+        .hero-badge svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .hero h1 {
+            font-size: clamp(32px, 4vw, 52px);
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+            margin-bottom: 20px;
+        }
+
+        .hero h1 span {
+            color: var(--accent);
+        }
+
+        .hero-sub {
+            font-size: 18px;
+            color: #9ca3af;
+            margin-bottom: 36px;
+            line-height: 1.7;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--accent);
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
+            padding: 14px 28px;
+            border-radius: var(--radius-sm);
+            text-decoration: none;
+            transition: background 0.15s, transform 0.1s;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-ghost {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: transparent;
+            color: #d1d5db;
+            font-size: 15px;
+            font-weight: 600;
+            padding: 14px 28px;
+            border-radius: var(--radius-sm);
+            text-decoration: none;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: border-color 0.15s, color 0.15s;
+        }
+
+        .btn-ghost:hover {
+            border-color: rgba(255, 255, 255, 0.35);
+            color: #fff;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 28px;
+            margin-top: 36px;
+        }
+
+        .hero-stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .hero-stat-num {
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .hero-stat-label {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        /* Popup Mockup */
+        .popup-mockup {
+            background: #fafafa;
+            border-radius: 14px;
+            padding: 18px;
+            width: 100%;
+            max-width: 340px;
+            margin: 0 auto;
+            box-shadow: 0 32px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06);
+            font-family: 'Manrope', sans-serif;
+        }
+
+        .mockup-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .mockup-icon {
+            width: 28px;
+            height: 28px;
+            background: var(--accent);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mockup-icon svg {
+            width: 16px;
+            height: 16px;
+            fill: #fff;
+        }
+
+        .mockup-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #111;
+        }
+
+        .mockup-page {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 12px;
+        }
+
+        .mockup-page-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .mockup-page-url {
+            font-size: 13px;
+            font-weight: 500;
+            color: #111;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .mockup-select {
+            background: #fff;
+            border: 1px solid #d4d4d8;
+            border-radius: 8px;
+            padding: 9px 12px;
+            font-size: 13px;
+            color: #111;
+            margin-bottom: 10px;
+            width: 100%;
+            font-family: inherit;
+        }
+
+        .mockup-btn-black {
+            background: #000;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .mockup-btn-gray {
+            background: #fff;
+            color: #000;
+            border: 1px solid #d4d4d8;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .mockup-divider {
+            height: 1px;
+            background: #e5e7eb;
+            margin: 10px 0;
+        }
+
+        .mockup-tools {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .mockup-tool-btn {
+            background: #fff;
+            border: 1px solid #d4d4d8;
+            border-radius: 8px;
+            padding: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            color: #111;
+        }
+
+        .mockup-tool-btn.accent {
+            background: #fff7ed;
+            color: #c2410c;
+            border-color: #fdba74;
+            grid-column: 1 / -1;
+            position: relative;
+        }
+
+        .mockup-new-badge {
+            position: absolute;
+            top: -7px;
+            right: -5px;
+            background: #ef4444;
+            color: #fff;
+            font-size: 8px;
+            font-weight: 700;
+            padding: 2px 4px;
+            border-radius: 3px;
+            letter-spacing: 0.05em;
+        }
+
+        /* ===== SECTION BASE ===== */
+
+        section {
+            padding: 80px 24px;
+        }
+
+        .section-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .section-tag {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: clamp(28px, 3vw, 42px);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--text);
+            margin-bottom: 14px;
+        }
+
+        .section-sub {
+            font-size: 17px;
+            color: var(--muted);
+            max-width: 560px;
+            line-height: 1.7;
+        }
+
+        /* ===== FEATURES ===== */
+
+        .features {
+            background: var(--white);
+        }
+
+        .features-header {
+            text-align: center;
+            margin-bottom: 56px;
+        }
+
+        .features-header .section-sub {
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px 24px;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .feature-card:hover {
+            border-color: rgba(255, 106, 0, 0.4);
+            box-shadow: 0 8px 24px rgba(255, 106, 0, 0.07);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: #fff7ed;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-bottom: 16px;
+        }
+
+        .feature-card h3 {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feature-new {
+            background: #ef4444;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            letter-spacing: 0.05em;
+        }
+
+        .feature-card p {
+            font-size: 14px;
+            color: var(--muted);
+            line-height: 1.65;
+        }
+
+        /* ===== HOW IT WORKS ===== */
+
+        .how {
+            background: var(--gray-bg);
+        }
+
+        .how-header {
+            text-align: center;
+            margin-bottom: 56px;
+        }
+
+        .how-header .section-sub {
+            margin: 0 auto;
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            position: relative;
+        }
+
+        .steps::before {
+            content: '';
+            position: absolute;
+            top: 28px;
+            left: calc(16.66% + 16px);
+            right: calc(16.66% + 16px);
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent) 0%, rgba(255, 106, 0, 0.2) 100%);
+        }
+
+        .step {
+            text-align: center;
+            position: relative;
+        }
+
+        .step-num {
+            width: 56px;
+            height: 56px;
+            background: var(--accent);
+            color: #fff;
+            font-size: 20px;
+            font-weight: 700;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step h3 {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .step p {
+            font-size: 14px;
+            color: var(--muted);
+            line-height: 1.65;
+        }
+
+        /* ===== PRICING ===== */
+
+        .pricing {
+            background: var(--white);
+        }
+
+        .pricing-header {
+            text-align: center;
+            margin-bottom: 56px;
+        }
+
+        .pricing-header .section-sub {
+            margin: 0 auto;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 28px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .pricing-card {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 36px 32px;
+            width: fit-content;
+        }
+
+        .pricing-card.featured {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(255, 106, 0, 0.1);
+            position: relative;
+        }
+
+        .pricing-badge {
+            position: absolute;
+            top: -13px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 100px;
+            white-space: nowrap;
+        }
+
+        .pricing-plan {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+
+        .pricing-price {
+            font-size: 42px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .pricing-price sup {
+            font-size: 22px;
+            font-weight: 600;
+            vertical-align: super;
+        }
+
+        .pricing-period {
+            font-size: 14px;
+            color: var(--muted);
+            margin-bottom: 24px;
+        }
+
+        .pricing-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 24px 0;
+        }
+
+        .pricing-features {
+            list-style: none;
+            margin-bottom: 28px;
+        }
+
+        .pricing-features li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 14px;
+            color: var(--text);
+            padding: 6px 0;
+        }
+
+        .pricing-features li svg {
+            width: 18px;
+            height: 18px;
+            color: var(--accent);
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .pricing-features li.muted {
+            color: var(--muted);
+            text-decoration: line-through;
+        }
+
+        .pricing-features li.muted svg {
+            color: #d1d5db;
+        }
+
+        .btn-pricing {
+            display: block;
+            text-align: center;
+            padding: 13px;
+            border-radius: var(--radius-sm);
+            font-size: 15px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.15s;
+        }
+
+        .btn-pricing-primary {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .btn-pricing-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-pricing-outline {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-pricing-outline:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* ===== FAQ ===== */
+
+        .faq {
+            background: var(--gray-bg);
+        }
+
+        .faq-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .faq-list {
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        .faq-item {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .faq-item input[type="checkbox"] {
+            display: none;
+        }
+
+        .faq-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+            gap: 16px;
+        }
+
+        .faq-label svg {
+            width: 20px;
+            height: 20px;
+            color: var(--muted);
+            flex-shrink: 0;
+            transition: transform 0.2s;
+        }
+
+        .faq-item input:checked + .faq-label svg {
+            transform: rotate(180deg);
+            color: var(--accent);
+        }
+
+        .faq-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.25s ease;
+        }
+
+        .faq-item input:checked ~ .faq-body {
+            max-height: 200px;
+        }
+
+        .faq-body p {
+            font-size: 15px;
+            color: var(--muted);
+            line-height: 1.7;
+            padding-bottom: 20px;
+        }
+
+        /* ===== CONTACT ===== */
+
+        .contact {
+            background: var(--white);
+        }
+
+        .contact-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 80px;
+            align-items: start;
+        }
+
+        .contact h2 {
+            font-size: clamp(28px, 3vw, 38px);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 14px;
+        }
+
+        .contact-sub {
+            font-size: 16px;
+            color: var(--muted);
+            line-height: 1.7;
+            margin-bottom: 32px;
+        }
+
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .contact-info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 14px;
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        .contact-info-item svg {
+            width: 18px;
+            height: 18px;
+            color: var(--accent);
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .form-placeholder {
+            background: var(--gray-bg);
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 40px 24px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 14px;
+            min-height: 360px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .form-placeholder svg {
+            width: 32px;
+            height: 32px;
+            color: #d1d5db;
+            margin-bottom: 8px;
+        }
+
+        .form-placeholder strong {
+            color: var(--text);
+            font-size: 15px;
+        }
+
+        /* ===== FOOTER ===== */
+
+        .footer {
+            background: var(--dark);
+            padding: 48px 24px;
+        }
+
+        .footer-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        .footer-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .footer-logo img {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+        }
+
+        .footer-logo span {
+            font-size: 15px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: #9ca3af;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.15s;
+        }
+
+        .footer-links a:hover {
+            color: #fff;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.07);
+            padding-top: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .footer-legal {
+            font-size: 13px;
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        /* ===== RESPONSIVE ===== */
+
+        @media (max-width: 900px) {
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .hero-inner {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .popup-mockup {
+                max-width: 300px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            section {
+                padding: 60px 20px;
+            }
+
+            .hero {
+                padding: 72px 20px 60px;
+            }
+
+            .hero-inner {
+                grid-template-columns: 1fr;
+            }
+
+            .popup-mockup-wrap {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 32px;
+            }
+
+            .hero-sub {
+                font-size: 16px;
+            }
+
+            .hero-actions {
+                flex-direction: column;
+            }
+
+            .btn-primary, .btn-ghost {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .hero-stats {
+                gap: 20px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .steps {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+
+            .steps::before {
+                display: none;
+            }
+
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-inner {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .footer-top {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .nav-inner {
+                padding: 0 16px;
+            }
+
+            .nav-logo span {
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pricing-card {
+                padding: 28px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="#" class="nav-logo">
+            <img src="icons/icon128.png" alt="Notebook Importer">
+            <span>Notebook Importer</span>
+        </a>
+        <a href="https://chromewebstore.google.com/detail/notebook-lm/macmiooaeggbklhlhdgnmcnedoipoakk?utm_source=landing" class="nav-cta" target="_blank" rel="noopener">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2.5">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Install Free
+        </a>
+    </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+    <div class="hero-inner">
+        <div class="hero-content">
+<!--            <div class="hero-badge">-->
+<!--                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">-->
+<!--                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>-->
+<!--                </svg>-->
+<!--                Chrome Extension &nbsp;·&nbsp; v1.0.6-->
+<!--            </div>-->
+            <h1>Import <span>Anything</span> into Notebook — Instantly</h1>
+            <p class="hero-sub">Add YouTube videos, playlists, channels, and web pages to Google Notebook in one
+                click. Bulk import, browser tabs, and paywalled content all supported.</p>
+            <div class="hero-actions">
+                <a href="https://chromewebstore.google.com/detail/notebook-lm/macmiooaeggbklhlhdgnmcnedoipoakk?utm_source=landing" class="btn-primary" target="_blank" rel="noopener">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2.5">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Install for Free
+                </a>
+                <a href="#features" class="btn-ghost">
+                    See Features
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="hero-stat-item">
+                    <span class="hero-stat-num">50+</span>
+                    <span class="hero-stat-label">Languages</span>
+                </div>
+                <div class="hero-stat-item">
+                    <span class="hero-stat-num">1-click</span>
+                    <span class="hero-stat-label">Import</span>
+                </div>
+                <div class="hero-stat-item">
+                    <span class="hero-stat-num">Free</span>
+                    <span class="hero-stat-label">Trial</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Popup Mockup -->
+        <div class="popup-mockup-wrap">
+            <div class="popup-mockup">
+                <div class="mockup-header">
+                    <div class="mockup-title">Notebook importer</div>
+                </div>
+                <div class="mockup-page">
+                    <div class="mockup-page-label">Current page:</div>
+                    <div class="mockup-page-url">ChatGPT</div>
+                </div>
+                <div style="font-size:10px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">
+                    Add to notebook:
+                </div>
+                <select class="mockup-select">
+                    <option>📔 My Research Notebook (3 sources)</option>
+                </select>
+                <div class="mockup-btn-black">➕ Add to Notebook</div>
+                <div class="mockup-btn-gray">Create New Notebook</div>
+                <div class="mockup-divider"></div>
+                <div style="font-size:10px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">
+                    Tools:
+                </div>
+                <div class="mockup-tools">
+                    <div class="mockup-tool-btn">🗂 From Tabs</div>
+                    <div class="mockup-tool-btn">🔗 Bulk Import</div>
+                    <div class="mockup-tool-btn accent">
+                        📄 Page Content
+                        <span class="mockup-new-badge">NEW!</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== FEATURES ===== -->
+<section class="features" id="features">
+    <div class="section-inner">
+        <div class="features-header">
+            <div class="section-tag">Features</div>
+            <h2 class="section-title">Everything you need to power up Notebook</h2>
+            <p class="section-sub">Stop copying links one by one. Import entire playlists, batch URLs, and even content
+                behind paywalls.</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🎬</div>
+                <h3>YouTube Videos</h3>
+                <p>Add any YouTube video to your notebook directly from the video page with a single click. Buttons
+                    appear right on YouTube.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📋</div>
+                <h3>Playlists &amp; Channels</h3>
+                <p>Batch-import an entire playlist or all videos from a YouTube channel at once. Extracts up to 50
+                    videos from the DOM.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔗</div>
+                <h3>Bulk URL Import</h3>
+                <p>Paste a list of URLs — one per line — and import them all into a new or existing notebook in a single
+                    operation.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🗂️</div>
+                <h3>From Browser Tabs</h3>
+                <p>Select any of your open browser tabs and send them directly to Notebook without copying a single
+                    URL.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3>
+                    Paywalled Content
+                    <span class="feature-new">NEW</span>
+                </h3>
+                <p>Extract and import page content from restricted or paywalled websites directly into your notebook —
+                    no copy-paste needed.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">👤</div>
+                <h3>Multiple Accounts</h3>
+                <p>Switch between Google accounts seamlessly. Use the account selector in the popup to pick which
+                    account hosts your notebooks.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== HOW IT WORKS ===== -->
+<section class="how">
+    <div class="section-inner">
+        <div class="how-header">
+            <div class="section-tag">How It Works</div>
+            <h2 class="section-title">Three steps to your notebook</h2>
+            <p class="section-sub">Install once, then import from anywhere on the web with minimal effort.</p>
+        </div>
+        <div class="steps">
+            <div class="step">
+                <div class="step-num">1</div>
+                <h3>Install the Extension</h3>
+                <p>Add Notebook Importer in one click. No sign-up required — just install
+                    and pin it.</p>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <h3>Open Any Page or Video</h3>
+                <p>Browse to any YouTube video, playlist, channel, or web article. The extension detects the page type
+                    automatically.</p>
+            </div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <h3>Click "Add to Notebook"</h3>
+                <p>Select your target notebook, click import, and the content is added to Google Notebook
+                    immediately.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== PRICING ===== -->
+<section class="pricing" id="pricing">
+    <div class="section-inner">
+        <div class="pricing-header">
+            <div class="section-tag">Pricing</div>
+            <h2 class="section-title">Start free, unlock everything</h2>
+            <p class="section-sub">Try all features free for <strong>2 days</strong> — No payment required • Cancel anytime.
+            </p>
+        </div>
+        <div class="pricing-grid">
+
+            <!-- Free Trial -->
+            <div class="pricing-card">
+                <div class="pricing-plan">Free Trial</div>
+                <div class="pricing-price">Free</div>
+                <div class="pricing-period">2 days free trial • then $2.99/month </div>
+                <div class="pricing-divider"></div>
+                <ul class="pricing-features">
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        All features included
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        YouTube videos, playlists, channels
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        Bulk import &amp; browser tabs
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        Page content extraction
+                    </li>
+                </ul>
+                <a href="https://chromewebstore.google.com/detail/notebook-lm/macmiooaeggbklhlhdgnmcnedoipoakk?utm_source=landing" class="btn-pricing btn-pricing-outline" target="_blank" rel="noopener">
+                    Start Free Trial
+                </a>
+            </div>
+
+            <!-- Pro -->
+            <div class="pricing-card">
+                <div class="pricing-plan">Pro</div>
+                <div class="pricing-price"><sup>$</sup>2.99</div>
+                <div class="pricing-period">per month</div>
+                <div class="pricing-divider"></div>
+
+                <ul class="pricing-features">
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        Everything in Free Trial
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        Unlimited imports
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        Priority support
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        All future features included
+                    </li>
+                </ul>
+
+                <a href="https://chromewebstore.google.com/detail/notebook-lm/macmiooaeggbklhlhdgnmcnedoipoakk?utm_source=landing" class="btn-pricing btn-pricing-primary" target="_blank" rel="noopener">
+                    Get Pro Monthly
+                </a>
+            </div>
+
+
+            <div class="pricing-card featured">
+                <div class="pricing-badge">Most Popular</div>
+                <div class="pricing-plan">Pro Yearly</div>
+                <div class="pricing-price"><sup>$</sup>24</div>
+                <div class="pricing-period">
+                    per year &nbsp;·&nbsp; <strong>Save 33%</strong>
+                </div>
+                <div class="pricing-divider"></div>
+
+                <ul class="pricing-features">
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        Everything in Free Trial
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        Unlimited imports
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        Priority support
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        All future features included
+                    </li>
+                </ul>
+
+                <a href="https://chromewebstore.google.com/detail/notebook-lm/macmiooaeggbklhlhdgnmcnedoipoakk?utm_source=landing" class="btn-pricing btn-pricing-primary" target="_blank" rel="noopener">
+                    Get Pro Yearly
+                </a>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section class="faq">
+    <div class="section-inner">
+        <div class="faq-header">
+            <div class="section-tag">FAQ</div>
+            <h2 class="section-title">Common questions</h2>
+        </div>
+        <div class="faq-list">
+
+            <div class="faq-item">
+                <input type="checkbox" id="faq1">
+                <label class="faq-label" for="faq1">
+                    Do I need a Notebook account to use this?
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </label>
+                <div class="faq-body">
+                    <p>Yes. You need to be logged into Notebook LM with
+                        a Google account before using the extension. The extension uses your existing session to add
+                        sources — no extra credentials needed.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <input type="checkbox" id="faq2">
+                <label class="faq-label" for="faq2">
+                    How many YouTube videos can I import from a playlist or channel?
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </label>
+                <div class="faq-body">
+                    <p>The extension extracts videos visible in the YouTube DOM at the time of import — typically up to
+                        50 videos for channels. For playlists, scroll down to load more videos before clicking import to
+                        capture additional items.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <input type="checkbox" id="faq3">
+                <label class="faq-label" for="faq3">
+                    What is the "Page Content" feature?
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </label>
+                <div class="faq-body">
+                    <p>Page Content extracts the visible text from the current page — including content behind soft
+                        paywalls or subscriber walls — and imports it as a text source into your notebook. This is
+                        useful for articles, news, or research papers that can't be added via URL alone.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <input type="checkbox" id="faq4">
+                <label class="faq-label" for="faq4">
+                    How do I switch between Google accounts?
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </label>
+                <div class="faq-body">
+                    <p>Open the extension popup and use the account selector in the bottom-left footer. All Google
+                        accounts currently signed into Chrome are listed. Selecting a different account will reload your
+                        notebooks for that account.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- ===== CONTACT ===== -->
+<section class="contact" id="contact">
+    <div class="contact-inner">
+        <div>
+            <div class="section-tag">Contact</div>
+            <h2>Get in Touch</h2>
+            <p class="contact-sub">Have questions, feedback, or a feature request? Fill out the form or reach us
+                directly. We read every message.</p>
+            <div class="contact-info">
+                <div class="contact-info-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        <polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
+                    <div>
+                        <strong>Tech Product Partners KFT</strong><br>
+                        11 Ady Endre utca, Tésa<br>
+                        Hungary, 2636
+                    </div>
+                </div>
+                <div class="contact-info-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                        <polyline points="22,6 12,13 2,6"/>
+                    </svg>
+                    <div>
+                        <a href="mailto:itdeveloper.es@gmail.com"
+                           style="color:var(--accent);text-decoration:none;">itdeveloper.es@gmail.com</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Google Form embed placeholder -->
+        <div>
+            <!-- PASTE GOOGLE FORM EMBED HERE -->
+            <iframe src="https://docs.google.com/forms/d/17km-wM_CqHDUJNvS1LZNFwggnY5f4HW4JBBawrgPJjY/viewform?embedded=true" width="100%" height="520" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
+        </div>
+    </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+    <div class="footer-inner">
+        <div class="footer-top">
+            <a href="#" class="footer-logo">
+                <img src="icons/icon128.png" alt="Notebook Importer">
+                <span>Notebook Importer</span>
+            </a>
+            <div class="footer-links">
+                <a href="https://appstack.pro/privacy" target="_blank">Privacy Policy</a>
+                <a href="https://appstack.pro/agreement" target="_blank">Terms of Service</a>
+                <a href="https://appstack.pro/refunds" target="_blank">Refund Policy</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="footer-legal">
+                Tech Product Partners KFT.<br>
+                11 Ady Endre utca, Tésa, Hungary, 2636
+            </div>
+            <div style="color:#4b5563;font-size:13px;">
+                Not affiliated with Google or Notebook.
+            </div>
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>
